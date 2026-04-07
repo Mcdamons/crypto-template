@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gusuyproduction — crypto news</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Teko:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #FFE500;
+    --orange: #FF6B00;
+    --red: #FF2D2D;
+    --black: #0a0800;
+    --white: #FFFDE0;
+    --gray: #1a1800;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--black);
+    min-height: 100vh;
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    gap: 28px;
+    cursor: crosshair;
+  }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    width: 480px;
+    max-width: 100%;
+    aspect-ratio: 1/1;
+    background: var(--black);
+    border: 3px solid var(--yellow);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: borderPulse 4s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { border-color: var(--yellow); box-shadow: 0 0 0 0 rgba(255,229,0,0); }
+    50% { border-color: var(--orange); box-shadow: 0 0 30px 2px rgba(255,107,0,0.15); }
+  }
+
+  /* scanline effect */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* corner cuts — brutalist */
+  .cut-tl, .cut-tr, .cut-bl, .cut-br {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background: var(--black);
+    z-index: 20;
+  }
+  .cut-tl { top: -2px; left: -2px; border-right: 3px solid var(--yellow); border-bottom: 3px solid var(--yellow); }
+  .cut-tr { top: -2px; right: -2px; border-left: 3px solid var(--yellow); border-bottom: 3px solid var(--yellow); }
+  .cut-bl { bottom: -2px; left: -2px; border-right: 3px solid var(--yellow); border-top: 3px solid var(--yellow); }
+  .cut-br { bottom: -2px; right: -2px; border-left: 3px solid var(--yellow); border-top: 3px solid var(--yellow); }
+
+  /* top ticker bar */
+  .ticker-wrap {
+    background: var(--yellow);
+    overflow: hidden;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    z-index: 5;
+  }
+  .ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 18s linear infinite;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: 0.08em;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item { padding: 0 24px; }
+  .ticker-sep { opacity: 0.4; }
+
+  /* header row */
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px 8px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .handle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tag-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--black);
+    background: var(--yellow);
+    padding: 3px 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+
+  /* main content */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    gap: 14px;
+    position: relative;
+    z-index: 5;
+  }
+
+  /* diagonal bg accent */
+  .main::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -40px; right: -40px; bottom: 0;
+    background: linear-gradient(135deg, transparent 45%, rgba(255,229,0,0.03) 45%, rgba(255,229,0,0.03) 55%, transparent 55%);
+    pointer-events: none;
+  }
+
+  .logo-zone {
+    position: relative;
+    width: 88px;
+    height: 88px;
+  }
+  .logo-frame {
+    width: 88px;
+    height: 88px;
+    background: var(--gray);
+    border: 2px solid var(--yellow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    cursor: pointer;
+    position: relative;
+  }
+  .logo-frame:hover .logo-hover { opacity: 1; }
+  .logo-hover {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,229,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .logo-placeholder-icon {
+    font-size: 32px;
+    color: #333;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  #logoImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  .logo-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: var(--orange);
+    color: var(--white);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .project-name {
+    font-family: 'Teko', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--white);
+    text-align: center;
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0 var(--yellow), 6px 6px 0 rgba(255,229,0,0.15);
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+  }
+  .amount-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--black);
+    background: var(--orange);
+    padding: 5px 10px 5px 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%);
+  }
+  .amount-value {
+    font-family: 'Teko', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 0.02em;
+    padding: 0 16px 0 20px;
+    background: rgba(255,229,0,0.06);
+    border: 1.5px solid rgba(255,229,0,0.3);
+    border-left: none;
+    line-height: 1.1;
+    text-shadow: 0 0 20px rgba(255,229,0,0.3);
+    animation: glitch 8s ease-in-out infinite;
+  }
+  @keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); text-shadow: 0 0 20px rgba(255,229,0,0.3); }
+    92% { transform: translate(-2px, 0); text-shadow: 2px 0 0 var(--orange), -2px 0 0 var(--red); }
+    94% { transform: translate(2px, 0); text-shadow: -2px 0 0 var(--orange), 2px 0 0 var(--red); }
+    96% { transform: translate(0); }
+  }
+
+  .sub-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: #555;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .sub-line span { color: var(--yellow); opacity: 0.6; }
+
+  /* bottom bar */
+  .bottom {
+    position: relative;
+    z-index: 5;
+    border-top: 1.5px solid rgba(255,229,0,0.2);
+    padding: 10px 18px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .disclaimer {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #333;
+    text-align: center;
+    letter-spacing: 0.04em;
+    line-height: 1.7;
+  }
+
+  .brand-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .brand-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,229,0,0.3));
+  }
+  .brand-line.r {
+    background: linear-gradient(90deg, rgba(255,229,0,0.3), transparent);
+  }
+  .brand-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255,229,0,0.5);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ===== EDIT PANEL ===== */
+  .panel {
+    width: 480px;
+    max-width: 100%;
+    background: var(--gray);
+    border: 1.5px solid rgba(255,229,0,0.2);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .panel-header {
+    font-family: 'Teko', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--yellow);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255,229,0,0.15);
+    padding-bottom: 12px;
+  }
+
+  .frow { display: flex; gap: 10px; }
+  .frow .fgroup { flex: 1; }
+  .fgroup { display: flex; flex-direction: column; gap: 5px; }
+
+  label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,229,0,0.4);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  input[type="text"],
+  input[type="url"],
+  textarea {
+    background: #0e0c00;
+    border: 1px solid rgba(255,229,0,0.2);
+    padding: 9px 12px;
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    outline: none;
+    width: 100%;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--yellow);
+    background: #130f00;
+  }
+  textarea { resize: vertical; min-height: 55px; line-height: 1.5; }
+  input[type="file"] { display: none; }
+
+  .upload-zone {
+    background: #0e0c00;
+    border: 1px dashed rgba(255,229,0,0.25);
+    padding: 10px;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,229,0,0.35);
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .upload-zone:hover {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: rgba(255,229,0,0.04);
+  }
+
+  .apply-btn {
+    background: var(--yellow);
+    border: none;
+    padding: 13px;
+    color: var(--black);
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+  }
+  .apply-btn:hover {
+    background: var(--orange);
+    color: var(--white);
+    transform: scale(1.01);
+  }
+  .apply-btn:active { transform: scale(0.99); }
+
+  .save-btn {
+    background: transparent;
+    border: 2px solid var(--yellow);
+    padding: 12px;
+    color: var(--yellow);
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .save-btn:hover {
+    background: rgba(255,229,0,0.1);
+    transform: scale(1.01);
+  }
+  .save-btn:active { transform: scale(0.99); }
+  .save-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #2a2500;
+    text-align: center;
+    letter-spacing: 0.05em;
+    line-height: 1.7;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<!-- CARD -->
+<div class="card" id="card">
+  <div class="cut-tl"></div>
+  <div class="cut-tr"></div>
+  <div class="cut-bl"></div>
+  <div class="cut-br"></div>
+
+  <div class="ticker-wrap">
+    <div class="ticker" id="tickerEl">
+      <span class="ticker-item">BTC SEASON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">DYOR NOT FP</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">gusuyproduction</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">WEN MOON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">NFA</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">BTC SEASON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">DYOR NOT FP</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">gusuyproduction</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">WEN MOON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">NFA</span>
+      <span class="ticker-item ticker-sep">///</span>
+    </div>
+  </div>
+
+  <div class="header-row">
+    <span class="handle" id="handleEl">@gusuyproduction</span>
+    <span class="tag-pill" id="tagEl">Funding Round</span>
+  </div>
+
+  <div class="main">
+    <div class="logo-zone">
+      <div class="logo-frame" onclick="document.getElementById('fileInput').click()">
+        <span class="logo-placeholder-icon" id="logoPlaceholder">?</span>
+        <img id="logoImg" src="" alt="logo">
+        <div class="logo-hover">Upload</div>
+      </div>
+      <div class="logo-badge" id="badgeEl">NEW</div>
+    </div>
+
+    <div class="project-name" id="projectNameEl">Dango<br>Testnet</div>
+
+    <div class="amount-row">
+      <div class="amount-label" id="amountLabelEl">Funding</div>
+      <div class="amount-value" id="amountEl">$3.6M</div>
+    </div>
+
+    <div class="sub-line" id="subEl"><span>▼</span> รายละเอียดใต้คอมเมนต์ <span>▼</span></div>
+  </div>
+
+  <div class="bottom">
+    <div class="disclaimer" id="disclaimerEl">⚠ NFA · DYOR · บล็อกเชนและคริปโตมีความเสี่ยงสูง โปรดศึกษาก่อนเข้าร่วม</div>
+    <div class="brand-footer">
+      <div class="brand-line"></div>
+      <span class="brand-text" id="brandEl">@gusuyproduction</span>
+      <div class="brand-line r"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*">
+
+<!-- PANEL -->
+<div class="panel">
+  <div class="panel-header">// แก้ไข template</div>
+
+  <div class="frow">
+    <div class="fgroup">
+      <label>ชื่อโปรเจกต์</label>
+      <input type="text" id="inName" value="Dango Testnet" placeholder="Project Name">
+    </div>
+    <div class="fgroup">
+      <label>Tag</label>
+      <input type="text" id="inTag" value="Funding Round" placeholder="Funding Round">
+    </div>
+  </div>
+
+  <div class="frow">
+    <div class="fgroup">
+      <label>Label (Funding / Raise / etc.)</label>
+      <input type="text" id="inAmountLabel" value="Funding" placeholder="Funding">
+    </div>
+    <div class="fgroup">
+      <label>จำนวนเงิน</label>
+      <input type="text" id="inAmount" value="$3.6M" placeholder="$3.6M">
+    </div>
+  </div>
+
+  <div class="frow">
+    <div class="fgroup">
+      <label>Badge (มุมบนขวาของ logo)</label>
+      <input type="text" id="inBadge" value="NEW" placeholder="NEW / HOT / etc.">
+    </div>
+    <div class="fgroup">
+      <label>Sub text</label>
+      <input type="text" id="inSub" value="รายละเอียดใต้คอมเมนต์" placeholder="Sub text">
+    </div>
+  </div>
+
+  <div class="fgroup">
+    <label>Logo URL (หรืออัปโหลดจากเครื่อง)</label>
+    <input type="url" id="inLogoUrl" placeholder="https://example.com/logo.png">
+  </div>
+
+  <div class="fgroup">
+    <label>อัปโหลด logo จากเครื่อง</label>
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+      [ คลิกเพื่อเลือกรูป ]
+    </div>
+  </div>
+
+  <div class="fgroup">
+    <label>Disclaimer</label>
+    <textarea id="inDisclaimer">⚠ NFA · DYOR · บล็อกเชนและคริปโตมีความเสี่ยงสูง โปรดศึกษาก่อนเข้าร่วม</textarea>
+  </div>
+
+  <button class="apply-btn" onclick="applyChanges()">// อัปเดต //</button>
+  <button class="save-btn" id="saveBtn" onclick="saveImage()">// บันทึกภาพ card //</button>
+  <p class="hint">ได้ภาพ 1:1 เฉพาะ card · พร้อมโพสต์ X ได้เลย</p>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+  async function saveImage() {
+    const btn = document.getElementById('saveBtn');
+    btn.classList.add('loading');
+    btn.textContent = '// กำลังสร้างภาพ... //';
+
+    const card = document.getElementById('card');
+
+    try {
+      const canvas = await html2canvas(card, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#0a0800',
+        logging: false,
+        onclone: (doc) => {
+          // ensure animations are paused for clean capture
+          const style = doc.createElement('style');
+          style.textContent = '* { animation: none !important; transition: none !important; }';
+          doc.head.appendChild(style);
+        }
+      });
+
+      const link = document.createElement('a');
+      const projectName = document.getElementById('projectNameEl').textContent.replace(/\s+/g, '-').toLowerCase();
+      link.download = `gusuy-${projectName}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    }
+
+    btn.classList.remove('loading');
+    btn.textContent = '// บันทึกภาพ card //';
+  }
+
+  document.getElementById('inLogoUrl').addEventListener('input', function() {
+    const url = this.value.trim();
+    if (url) setLogo(url);
+  });
+
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setLogo(ev.target.result);
+    reader.readAsDataURL(file);
+  });
+
+  function setLogo(src) {
+    const img = document.getElementById('logoImg');
+    const ph = document.getElementById('logoPlaceholder');
+    img.src = src;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+  }
+
+  function applyChanges() {
+    const v = id => document.getElementById(id).value;
+
+    // project name — split by space for two lines if long
+    const name = v('inName') || 'Project';
+    const words = name.trim().split(' ');
+    let nameHtml = name;
+    if (words.length >= 2) {
+      const mid = Math.ceil(words.length / 2);
+      nameHtml = words.slice(0, mid).join(' ') + '<br>' + words.slice(mid).join(' ');
+    }
+    document.getElementById('projectNameEl').innerHTML = nameHtml;
+
+    document.getElementById('tagEl').textContent = v('inTag') || 'News';
+    document.getElementById('amountLabelEl').textContent = v('inAmountLabel') || 'Funding';
+    document.getElementById('amountEl').textContent = v('inAmount') || '$0';
+    document.getElementById('badgeEl').textContent = v('inBadge') || 'NEW';
+    document.getElementById('subEl').innerHTML = '<span>▼</span> ' + (v('inSub') || '') + ' <span>▼</span>';
+    document.getElementById('disclaimerEl').textContent = v('inDisclaimer');
+
+    // logo url
+    const url = v('inLogoUrl').trim();
+    if (url) setLogo(url);
+  }
+</script>
+
+</body>
+</html>
