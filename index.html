@@ -3,260 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crypto News Template</title>
+<title>gusuyproduction — crypto news</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Teko:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --yellow: #FFE500;
+    --orange: #FF6B00;
+    --red: #FF2D2D;
+    --black: #0a0800;
+    --white: #FFFDE0;
+    --gray: #1a1800;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
-    background: #050505;
+    background: var(--black);
     min-height: 100vh;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'IBM Plex Mono', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     padding: 40px 20px;
-    gap: 32px;
+    gap: 28px;
+    cursor: crosshair;
   }
 
-  h1.page-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 22px;
-    letter-spacing: 0.15em;
-    color: #00dc50;
-    opacity: 0.6;
-    text-align: center;
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.35;
   }
 
   /* ===== CARD ===== */
   .card {
     width: 480px;
     max-width: 100%;
-    aspect-ratio: 1 / 1;
-    background: #080808;
-    border: 1px solid #1a1a1a;
-    border-radius: 20px;
-    overflow: hidden;
+    aspect-ratio: 1/1;
+    background: var(--black);
+    border: 3px solid var(--yellow);
     position: relative;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
+    animation: borderPulse 4s ease-in-out infinite;
   }
 
-  .grid-bg {
+  @keyframes borderPulse {
+    0%, 100% { border-color: var(--yellow); box-shadow: 0 0 0 0 rgba(255,229,0,0); }
+    50% { border-color: var(--orange); box-shadow: 0 0 30px 2px rgba(255,107,0,0.15); }
+  }
+
+  /* scanline effect */
+  .card::after {
+    content: '';
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(rgba(0,255,100,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,100,0.04) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
     pointer-events: none;
+    z-index: 10;
   }
 
-  .glow-top {
+  /* corner cuts — brutalist */
+  .cut-tl, .cut-tr, .cut-bl, .cut-br {
     position: absolute;
-    top: -80px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 260px;
-    height: 180px;
-    background: radial-gradient(ellipse, rgba(0,220,80,0.18) 0%, transparent 70%);
-    pointer-events: none;
+    width: 24px;
+    height: 24px;
+    background: var(--black);
+    z-index: 20;
   }
+  .cut-tl { top: -2px; left: -2px; border-right: 3px solid var(--yellow); border-bottom: 3px solid var(--yellow); }
+  .cut-tr { top: -2px; right: -2px; border-left: 3px solid var(--yellow); border-bottom: 3px solid var(--yellow); }
+  .cut-bl { bottom: -2px; left: -2px; border-right: 3px solid var(--yellow); border-top: 3px solid var(--yellow); }
+  .cut-br { bottom: -2px; right: -2px; border-left: 3px solid var(--yellow); border-top: 3px solid var(--yellow); }
 
-  .corner-accent {
-    position: absolute;
-    width: 30px;
-    height: 30px;
-    border-color: rgba(0,220,80,0.25);
-    border-style: solid;
-    z-index: 3;
-  }
-  .corner-accent.tl { top: 10px; left: 10px; border-width: 1.5px 0 0 1.5px; border-radius: 3px 0 0 0; }
-  .corner-accent.tr { top: 10px; right: 10px; border-width: 1.5px 1.5px 0 0; border-radius: 0 3px 0 0; }
-  .corner-accent.bl { bottom: 10px; left: 10px; border-width: 0 0 1.5px 1.5px; border-radius: 0 0 0 3px; }
-  .corner-accent.br { bottom: 10px; right: 10px; border-width: 0 1.5px 1.5px 0; border-radius: 0 0 3px 0; }
-
-  .top-bar {
+  /* top ticker bar */
+  .ticker-wrap {
+    background: var(--yellow);
+    overflow: hidden;
+    height: 28px;
+    display: flex;
+    align-items: center;
     position: relative;
-    z-index: 2;
+    z-index: 5;
+  }
+  .ticker {
+    display: flex;
+    white-space: nowrap;
+    animation: ticker 18s linear infinite;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--black);
+    letter-spacing: 0.08em;
+  }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .ticker-item { padding: 0 24px; }
+  .ticker-sep { opacity: 0.4; }
+
+  /* header row */
+  .header-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 22px 10px;
+    padding: 12px 18px 8px;
+    position: relative;
+    z-index: 5;
   }
 
-  .tag {
+  .handle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tag-pill {
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #00dc50;
-    border: 1px solid rgba(0,220,80,0.35);
-    padding: 4px 10px;
-    border-radius: 4px;
+    color: var(--black);
+    background: var(--yellow);
+    padding: 3px 10px;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    background: rgba(0,220,80,0.06);
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
   }
 
-  .dot-row { display: flex; gap: 5px; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: #1f1f1f; }
-  .dot.green { background: #00dc50; box-shadow: 0 0 6px rgba(0,220,80,0.6); }
-
-  .main-content {
+  /* main content */
+  .main {
     flex: 1;
-    position: relative;
-    z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 0 28px;
-    gap: 16px;
+    padding: 0 24px;
+    gap: 14px;
+    position: relative;
+    z-index: 5;
   }
 
-  .logo-wrap {
-    width: 80px;
-    height: 80px;
-    border-radius: 18px;
-    background: #111;
-    border: 1.5px solid #222;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
-  }
-  .logo-wrap::after {
+  /* diagonal bg accent */
+  .main::before {
     content: '';
     position: absolute;
-    inset: 0;
-    border-radius: 18px;
-    box-shadow: inset 0 0 0 1px rgba(0,220,80,0.15);
-  }
-  .logo-placeholder {
-    font-size: 28px;
-    color: #444;
+    top: 0; left: -40px; right: -40px; bottom: 0;
+    background: linear-gradient(135deg, transparent 45%, rgba(255,229,0,0.03) 45%, rgba(255,229,0,0.03) 55%, transparent 55%);
     pointer-events: none;
   }
-  .logo-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 16px;
-    display: none;
+
+  .logo-zone {
+    position: relative;
+    width: 88px;
+    height: 88px;
   }
-  .logo-upload-hint {
-    position: absolute;
-    inset: 0;
+  .logo-frame {
+    width: 88px;
+    height: 88px;
+    background: var(--gray);
+    border: 2px solid var(--yellow);
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    opacity: 0;
-    background: rgba(0,0,0,0.7);
-    border-radius: 18px;
-    transition: opacity 0.2s;
+    overflow: hidden;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    cursor: pointer;
+    position: relative;
   }
-  .logo-wrap:hover .logo-upload-hint { opacity: 1; }
-  .logo-upload-hint span { font-size: 9px; color: #00dc50; letter-spacing: 0.06em; text-transform: uppercase; }
-
-  .project-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 38px;
-    letter-spacing: 0.04em;
-    color: #ffffff;
-    text-align: center;
-    line-height: 1;
-  }
-
-  .funding-pill {
-    background: rgba(0,220,80,0.1);
-    border: 1.5px solid rgba(0,220,80,0.5);
-    border-radius: 100px;
-    padding: 12px 32px;
+  .logo-frame:hover .logo-hover { opacity: 1; }
+  .logo-hover {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,229,0,0.15);
     display: flex;
     align-items: center;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-  }
-  .funding-pill::before {
-    content: '';
-    position: absolute;
-    top: 0; left: -60%;
-    width: 40%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0,220,80,0.12), transparent);
-    animation: shine 3s ease-in-out infinite;
-  }
-  @keyframes shine { 0% { left: -60%; } 100% { left: 120%; } }
-
-  .funding-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: rgba(0,220,80,0.7);
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--yellow);
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .funding-amount {
-    font-family: 'Bebas Neue', sans-serif;
+  .logo-placeholder-icon {
     font-size: 32px;
-    color: #00dc50;
-    letter-spacing: 0.03em;
-    text-shadow: 0 0 20px rgba(0,220,80,0.4);
+    color: #333;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  #logoImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+  }
+  .logo-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: var(--orange);
+    color: var(--white);
+    font-size: 8px;
+    font-weight: 700;
+    padding: 2px 6px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'IBM Plex Mono', monospace;
   }
 
-  .sub-text {
-    font-size: 13px;
+  .project-name {
+    font-family: 'Teko', sans-serif;
+    font-size: 52px;
+    font-weight: 700;
+    color: var(--white);
+    text-align: center;
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    text-shadow: 3px 3px 0 var(--yellow), 6px 6px 0 rgba(255,229,0,0.15);
+  }
+
+  .amount-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+  }
+  .amount-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--black);
+    background: var(--orange);
+    padding: 5px 10px 5px 14px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%);
+  }
+  .amount-value {
+    font-family: 'Teko', sans-serif;
+    font-size: 42px;
+    font-weight: 700;
+    color: var(--yellow);
+    letter-spacing: 0.02em;
+    padding: 0 16px 0 20px;
+    background: rgba(255,229,0,0.06);
+    border: 1.5px solid rgba(255,229,0,0.3);
+    border-left: none;
+    line-height: 1.1;
+    text-shadow: 0 0 20px rgba(255,229,0,0.3);
+    animation: glitch 8s ease-in-out infinite;
+  }
+  @keyframes glitch {
+    0%, 90%, 100% { transform: translate(0); text-shadow: 0 0 20px rgba(255,229,0,0.3); }
+    92% { transform: translate(-2px, 0); text-shadow: 2px 0 0 var(--orange), -2px 0 0 var(--red); }
+    94% { transform: translate(2px, 0); text-shadow: -2px 0 0 var(--orange), 2px 0 0 var(--red); }
+    96% { transform: translate(0); }
+  }
+
+  .sub-line {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
     color: #555;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-align: center;
   }
+  .sub-line span { color: var(--yellow); opacity: 0.6; }
 
-  .divider {
+  /* bottom bar */
+  .bottom {
     position: relative;
-    z-index: 2;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, #1e1e1e, #2a2a2a, #1e1e1e, transparent);
-    margin: 0 28px;
-  }
-
-  .bottom-bar {
-    position: relative;
-    z-index: 2;
-    padding: 12px 22px 16px;
+    z-index: 5;
+    border-top: 1.5px solid rgba(255,229,0,0.2);
+    padding: 10px 18px 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .disclaimer {
-    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
     color: #333;
     text-align: center;
-    line-height: 1.6;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
+    line-height: 1.7;
   }
 
-  .brand-row {
+  .brand-footer {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
   }
-  .brand-dot {
-    width: 5px; height: 5px;
-    border-radius: 50%;
-    background: #00dc50;
-    box-shadow: 0 0 4px rgba(0,220,80,0.6);
+  .brand-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,229,0,0.3));
   }
-  .brand-name {
-    font-size: 11px;
+  .brand-line.r {
+    background: linear-gradient(90deg, rgba(255,229,0,0.3), transparent);
+  }
+  .brand-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
     font-weight: 700;
-    color: #2a2a2a;
-    letter-spacing: 0.1em;
+    color: rgba(255,229,0,0.5);
+    letter-spacing: 0.15em;
     text-transform: uppercase;
   }
 
@@ -264,267 +335,348 @@
   .panel {
     width: 480px;
     max-width: 100%;
-    background: #0d0d0d;
-    border: 1px solid #1e1e1e;
-    border-radius: 16px;
+    background: var(--gray);
+    border: 1.5px solid rgba(255,229,0,0.2);
     padding: 24px;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
   }
 
-  .panel-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: #00dc50;
+  .panel-header {
+    font-family: 'Teko', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--yellow);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid rgba(255,229,0,0.15);
+    padding-bottom: 12px;
   }
 
-  .field { display: flex; flex-direction: column; gap: 5px; }
-  .field-row { display: flex; gap: 10px; }
-  .field-row .field { flex: 1; }
+  .frow { display: flex; gap: 10px; }
+  .frow .fgroup { flex: 1; }
+  .fgroup { display: flex; flex-direction: column; gap: 5px; }
 
   label {
-    font-size: 10px;
-    color: #444;
-    letter-spacing: 0.08em;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,229,0,0.4);
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
-  input[type="text"], input[type="url"], textarea {
-    background: #080808;
-    border: 1px solid #1e1e1e;
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #bbb;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
+  input[type="text"],
+  input[type="url"],
+  textarea {
+    background: #0e0c00;
+    border: 1px solid rgba(255,229,0,0.2);
+    padding: 9px 12px;
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
     outline: none;
-    transition: border-color 0.2s;
     width: 100%;
+    transition: border-color 0.2s;
   }
-  input[type="text"]:focus,
-  input[type="url"]:focus,
-  textarea:focus { border-color: rgba(0,220,80,0.4); color: #fff; }
-
-  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
-
+  input:focus, textarea:focus {
+    border-color: var(--yellow);
+    background: #130f00;
+  }
+  textarea { resize: vertical; min-height: 55px; line-height: 1.5; }
   input[type="file"] { display: none; }
 
-  .upload-btn {
-    background: #0d0d0d;
-    border: 1px dashed #2a2a2a;
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: #444;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 12px;
-    cursor: pointer;
+  .upload-zone {
+    background: #0e0c00;
+    border: 1px dashed rgba(255,229,0,0.25);
+    padding: 10px;
     text-align: center;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .upload-btn:hover { border-color: rgba(0,220,80,0.4); color: #00dc50; }
-
-  .apply-btn {
-    background: rgba(0,220,80,0.1);
-    border: 1px solid rgba(0,220,80,0.4);
-    border-radius: 10px;
-    padding: 13px;
-    color: #00dc50;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,229,0,0.35);
     letter-spacing: 0.08em;
     cursor: pointer;
+    transition: all 0.2s;
     text-transform: uppercase;
-    transition: background 0.2s;
-    margin-top: 4px;
   }
-  .apply-btn:hover { background: rgba(0,220,80,0.18); }
+  .upload-zone:hover {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: rgba(255,229,0,0.04);
+  }
 
-  .export-btn {
-    background: transparent;
-    border: 1px solid #1e1e1e;
-    border-radius: 10px;
-    padding: 11px;
-    color: #444;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 12px;
+  .apply-btn {
+    background: var(--yellow);
+    border: none;
+    padding: 13px;
+    color: var(--black);
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     cursor: pointer;
-    letter-spacing: 0.06em;
-    transition: border-color 0.2s, color 0.2s;
+    transition: all 0.15s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
   }
-  .export-btn:hover { border-color: #333; color: #888; }
+  .apply-btn:hover {
+    background: var(--orange);
+    color: var(--white);
+    transform: scale(1.01);
+  }
+  .apply-btn:active { transform: scale(0.99); }
+
+  .save-btn {
+    background: transparent;
+    border: 2px solid var(--yellow);
+    padding: 12px;
+    color: var(--yellow);
+    font-family: 'Teko', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .save-btn:hover {
+    background: rgba(255,229,0,0.1);
+    transform: scale(1.01);
+  }
+  .save-btn:active { transform: scale(0.99); }
+  .save-btn.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
 
   .hint {
-    font-size: 10px;
-    color: #2a2a2a;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: #2a2500;
     text-align: center;
-    line-height: 1.6;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
+    line-height: 1.7;
+    text-transform: uppercase;
   }
 </style>
 </head>
 <body>
 
-<h1 class="page-title">◈ Crypto News Template</h1>
-
-<!-- CARD PREVIEW -->
+<!-- CARD -->
 <div class="card" id="card">
-  <div class="grid-bg"></div>
-  <div class="glow-top"></div>
-  <div class="corner-accent tl"></div>
-  <div class="corner-accent tr"></div>
-  <div class="corner-accent bl"></div>
-  <div class="corner-accent br"></div>
+  <div class="cut-tl"></div>
+  <div class="cut-tr"></div>
+  <div class="cut-bl"></div>
+  <div class="cut-br"></div>
 
-  <div class="top-bar">
-    <span class="tag" id="tagEl">Funding Round</span>
-    <div class="dot-row">
-      <div class="dot"></div>
-      <div class="dot"></div>
-      <div class="dot green"></div>
+  <div class="ticker-wrap">
+    <div class="ticker" id="tickerEl">
+      <span class="ticker-item">BTC SEASON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">DYOR NOT FP</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">gusuyproduction</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">WEN MOON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">NFA</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">BTC SEASON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">DYOR NOT FP</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">gusuyproduction</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">WEN MOON</span>
+      <span class="ticker-item ticker-sep">///</span>
+      <span class="ticker-item">NFA</span>
+      <span class="ticker-item ticker-sep">///</span>
     </div>
   </div>
 
-  <div class="main-content">
-    <div class="logo-wrap" onclick="document.getElementById('fileInput').click()">
-      <span class="logo-placeholder" id="logoPlaceholder">◈</span>
-      <img class="logo-img" id="logoImg" src="" alt="logo">
-      <div class="logo-upload-hint">
-        <span>▲</span>
-        <span>อัปโหลด</span>
+  <div class="header-row">
+    <span class="handle" id="handleEl">@gusuyproduction</span>
+    <span class="tag-pill" id="tagEl">Funding Round</span>
+  </div>
+
+  <div class="main">
+    <div class="logo-zone">
+      <div class="logo-frame" onclick="document.getElementById('fileInput').click()">
+        <span class="logo-placeholder-icon" id="logoPlaceholder">?</span>
+        <img id="logoImg" src="" alt="logo">
+        <div class="logo-hover">Upload</div>
       </div>
-    </div>
-    <input type="file" id="fileInput" accept="image/*">
-
-    <div class="project-name" id="projectNameEl">Dango Testnet</div>
-
-    <div class="funding-pill">
-      <span class="funding-label" id="fundingLabelEl">Funding</span>
-      <span class="funding-amount" id="fundingEl">$3.6M</span>
+      <div class="logo-badge" id="badgeEl">NEW</div>
     </div>
 
-    <div class="sub-text" id="subTextEl">รายละเอียดใต้คอมเมนต์</div>
+    <div class="project-name" id="projectNameEl">Dango<br>Testnet</div>
+
+    <div class="amount-row">
+      <div class="amount-label" id="amountLabelEl">Funding</div>
+      <div class="amount-value" id="amountEl">$3.6M</div>
+    </div>
+
+    <div class="sub-line" id="subEl"><span>▼</span> รายละเอียดใต้คอมเมนต์ <span>▼</span></div>
   </div>
 
-  <div class="divider"></div>
-
-  <div class="bottom-bar">
-    <div class="disclaimer" id="disclaimerEl">คำเตือน: บล็อกเชนและคริปโตเป็นการลงทุนที่มีความเสี่ยงสูง<br>โปรดศึกษาให้ดีก่อนเข้าร่วม</div>
-    <div class="brand-row">
-      <div class="brand-dot"></div>
-      <span class="brand-name" id="brandEl">@YourHandle</span>
-      <div class="brand-dot"></div>
+  <div class="bottom">
+    <div class="disclaimer" id="disclaimerEl">⚠ NFA · DYOR · บล็อกเชนและคริปโตมีความเสี่ยงสูง โปรดศึกษาก่อนเข้าร่วม</div>
+    <div class="brand-footer">
+      <div class="brand-line"></div>
+      <span class="brand-text" id="brandEl">@gusuyproduction</span>
+      <div class="brand-line r"></div>
     </div>
   </div>
 </div>
 
-<!-- EDIT PANEL -->
-<div class="panel">
-  <div class="panel-title">แก้ไข Template</div>
+<input type="file" id="fileInput" accept="image/*">
 
-  <div class="field-row">
-    <div class="field">
+<!-- PANEL -->
+<div class="panel">
+  <div class="panel-header">// แก้ไข template</div>
+
+  <div class="frow">
+    <div class="fgroup">
       <label>ชื่อโปรเจกต์</label>
       <input type="text" id="inName" value="Dango Testnet" placeholder="Project Name">
     </div>
-    <div class="field">
-      <label>Tag (มุมบนซ้าย)</label>
+    <div class="fgroup">
+      <label>Tag</label>
       <input type="text" id="inTag" value="Funding Round" placeholder="Funding Round">
     </div>
   </div>
 
-  <div class="field-row">
-    <div class="field">
-      <label>Label ใน pill</label>
-      <input type="text" id="inFundingLabel" value="Funding" placeholder="Funding">
+  <div class="frow">
+    <div class="fgroup">
+      <label>Label (Funding / Raise / etc.)</label>
+      <input type="text" id="inAmountLabel" value="Funding" placeholder="Funding">
     </div>
-    <div class="field">
-      <label>จำนวน / ตัวเลข</label>
-      <input type="text" id="inFunding" value="$3.6M" placeholder="$3.6M">
+    <div class="fgroup">
+      <label>จำนวนเงิน</label>
+      <input type="text" id="inAmount" value="$3.6M" placeholder="$3.6M">
     </div>
   </div>
 
-  <div class="field">
-    <label>Sub text (ใต้ตัวเลข)</label>
-    <input type="text" id="inSub" value="รายละเอียดใต้คอมเมนต์" placeholder="Sub text">
+  <div class="frow">
+    <div class="fgroup">
+      <label>Badge (มุมบนขวาของ logo)</label>
+      <input type="text" id="inBadge" value="NEW" placeholder="NEW / HOT / etc.">
+    </div>
+    <div class="fgroup">
+      <label>Sub text</label>
+      <input type="text" id="inSub" value="รายละเอียดใต้คอมเมนต์" placeholder="Sub text">
+    </div>
   </div>
 
-  <div class="field">
-    <label>Logo — URL รูป (หรือคลิกที่รูปด้านบนเพื่ออัปโหลด)</label>
+  <div class="fgroup">
+    <label>Logo URL (หรืออัปโหลดจากเครื่อง)</label>
     <input type="url" id="inLogoUrl" placeholder="https://example.com/logo.png">
   </div>
 
-  <div class="field">
-    <label>หรืออัปโหลดจากเครื่อง</label>
-    <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
-      คลิกเพื่อเลือกรูป Logo
+  <div class="fgroup">
+    <label>อัปโหลด logo จากเครื่อง</label>
+    <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+      [ คลิกเพื่อเลือกรูป ]
     </div>
   </div>
 
-  <div class="field">
-    <label>Disclaimer (แก้หรือเว้นว่างได้)</label>
-    <textarea id="inDisclaimer">คำเตือน: บล็อกเชนและคริปโตเป็นการลงทุนที่มีความเสี่ยงสูง
-โปรดศึกษาให้ดีก่อนเข้าร่วม</textarea>
+  <div class="fgroup">
+    <label>Disclaimer</label>
+    <textarea id="inDisclaimer">⚠ NFA · DYOR · บล็อกเชนและคริปโตมีความเสี่ยงสูง โปรดศึกษาก่อนเข้าร่วม</textarea>
   </div>
 
-  <div class="field">
-    <label>@Handle ของคุณ</label>
-    <input type="text" id="inBrand" value="@YourHandle" placeholder="@YourHandle">
-  </div>
-
-  <button class="apply-btn" onclick="applyChanges()">อัปเดต Template</button>
-  <button class="export-btn" onclick="exportCard()">Screenshot / Save (Print)</button>
-
-  <p class="hint">เปิดหน้านี้บน browser → แก้ข้อมูล → กด Screenshot<br>หรือใช้ Print → Save as PDF แล้ว crop ในแอปได้เลย</p>
+  <button class="apply-btn" onclick="applyChanges()">// อัปเดต //</button>
+  <button class="save-btn" id="saveBtn" onclick="saveImage()">// บันทึกภาพ card //</button>
+  <p class="hint">ได้ภาพ 1:1 เฉพาะ card · พร้อมโพสต์ X ได้เลย</p>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
-  // Apply URL logo
-  const inLogoUrl = document.getElementById('inLogoUrl');
-  inLogoUrl.addEventListener('input', function() {
+  async function saveImage() {
+    const btn = document.getElementById('saveBtn');
+    btn.classList.add('loading');
+    btn.textContent = '// กำลังสร้างภาพ... //';
+
+    const card = document.getElementById('card');
+
+    try {
+      const canvas = await html2canvas(card, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#0a0800',
+        logging: false,
+        onclone: (doc) => {
+          // ensure animations are paused for clean capture
+          const style = doc.createElement('style');
+          style.textContent = '* { animation: none !important; transition: none !important; }';
+          doc.head.appendChild(style);
+        }
+      });
+
+      const link = document.createElement('a');
+      const projectName = document.getElementById('projectNameEl').textContent.replace(/\s+/g, '-').toLowerCase();
+      link.download = `gusuy-${projectName}-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      alert('เกิดข้อผิดพลาด: ' + err.message);
+    }
+
+    btn.classList.remove('loading');
+    btn.textContent = '// บันทึกภาพ card //';
+  }
+
+  document.getElementById('inLogoUrl').addEventListener('input', function() {
     const url = this.value.trim();
-    if (url) loadLogo(url);
+    if (url) setLogo(url);
   });
 
-  // Upload file logo
   document.getElementById('fileInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = function(ev) { loadLogo(ev.target.result); };
+    reader.onload = ev => setLogo(ev.target.result);
     reader.readAsDataURL(file);
   });
 
-  function loadLogo(src) {
+  function setLogo(src) {
     const img = document.getElementById('logoImg');
-    const placeholder = document.getElementById('logoPlaceholder');
+    const ph = document.getElementById('logoPlaceholder');
     img.src = src;
     img.style.display = 'block';
-    placeholder.style.display = 'none';
+    ph.style.display = 'none';
   }
 
   function applyChanges() {
-    const v = (id) => document.getElementById(id).value;
-    document.getElementById('projectNameEl').textContent = v('inName') || 'Project Name';
+    const v = id => document.getElementById(id).value;
+
+    // project name — split by space for two lines if long
+    const name = v('inName') || 'Project';
+    const words = name.trim().split(' ');
+    let nameHtml = name;
+    if (words.length >= 2) {
+      const mid = Math.ceil(words.length / 2);
+      nameHtml = words.slice(0, mid).join(' ') + '<br>' + words.slice(mid).join(' ');
+    }
+    document.getElementById('projectNameEl').innerHTML = nameHtml;
+
     document.getElementById('tagEl').textContent = v('inTag') || 'News';
-    document.getElementById('fundingLabelEl').textContent = v('inFundingLabel') || 'Funding';
-    document.getElementById('fundingEl').textContent = v('inFunding') || '$0';
-    document.getElementById('subTextEl').textContent = v('inSub') || '';
-    document.getElementById('brandEl').textContent = v('inBrand') || '@handle';
-    const disc = v('inDisclaimer');
-    document.getElementById('disclaimerEl').innerHTML = disc.replace(/\n/g, '<br>');
+    document.getElementById('amountLabelEl').textContent = v('inAmountLabel') || 'Funding';
+    document.getElementById('amountEl').textContent = v('inAmount') || '$0';
+    document.getElementById('badgeEl').textContent = v('inBadge') || 'NEW';
+    document.getElementById('subEl').innerHTML = '<span>▼</span> ' + (v('inSub') || '') + ' <span>▼</span>';
+    document.getElementById('disclaimerEl').textContent = v('inDisclaimer');
+
     // logo url
     const url = v('inLogoUrl').trim();
-    if (url) loadLogo(url);
-  }
-
-  function exportCard() {
-    window.print();
+    if (url) setLogo(url);
   }
 </script>
 
