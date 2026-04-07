@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto News Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #050505;
+    min-height: 100vh;
+    font-family: 'Space Grotesk', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px;
+    gap: 32px;
+  }
+
+  h1.page-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 0.15em;
+    color: #00dc50;
+    opacity: 0.6;
+    text-align: center;
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    width: 480px;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #080808;
+    border: 1px solid #1a1a1a;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,100,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,100,0.04) 1px, transparent 1px);
+    background-size: 32px 32px;
+    pointer-events: none;
+  }
+
+  .glow-top {
+    position: absolute;
+    top: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 180px;
+    background: radial-gradient(ellipse, rgba(0,220,80,0.18) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .corner-accent {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: rgba(0,220,80,0.25);
+    border-style: solid;
+    z-index: 3;
+  }
+  .corner-accent.tl { top: 10px; left: 10px; border-width: 1.5px 0 0 1.5px; border-radius: 3px 0 0 0; }
+  .corner-accent.tr { top: 10px; right: 10px; border-width: 1.5px 1.5px 0 0; border-radius: 0 3px 0 0; }
+  .corner-accent.bl { bottom: 10px; left: 10px; border-width: 0 0 1.5px 1.5px; border-radius: 0 0 0 3px; }
+  .corner-accent.br { bottom: 10px; right: 10px; border-width: 0 1.5px 1.5px 0; border-radius: 0 0 3px 0; }
+
+  .top-bar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 10px;
+  }
+
+  .tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #00dc50;
+    border: 1px solid rgba(0,220,80,0.35);
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    background: rgba(0,220,80,0.06);
+  }
+
+  .dot-row { display: flex; gap: 5px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: #1f1f1f; }
+  .dot.green { background: #00dc50; box-shadow: 0 0 6px rgba(0,220,80,0.6); }
+
+  .main-content {
+    flex: 1;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0 28px;
+    gap: 16px;
+  }
+
+  .logo-wrap {
+    width: 80px;
+    height: 80px;
+    border-radius: 18px;
+    background: #111;
+    border: 1.5px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+  }
+  .logo-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    box-shadow: inset 0 0 0 1px rgba(0,220,80,0.15);
+  }
+  .logo-placeholder {
+    font-size: 28px;
+    color: #444;
+    pointer-events: none;
+  }
+  .logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+    display: none;
+  }
+  .logo-upload-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    opacity: 0;
+    background: rgba(0,0,0,0.7);
+    border-radius: 18px;
+    transition: opacity 0.2s;
+  }
+  .logo-wrap:hover .logo-upload-hint { opacity: 1; }
+  .logo-upload-hint span { font-size: 9px; color: #00dc50; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .project-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 38px;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+    text-align: center;
+    line-height: 1;
+  }
+
+  .funding-pill {
+    background: rgba(0,220,80,0.1);
+    border: 1.5px solid rgba(0,220,80,0.5);
+    border-radius: 100px;
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .funding-pill::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0,220,80,0.12), transparent);
+    animation: shine 3s ease-in-out infinite;
+  }
+  @keyframes shine { 0% { left: -60%; } 100% { left: 120%; } }
+
+  .funding-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(0,220,80,0.7);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .funding-amount {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    color: #00dc50;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 20px rgba(0,220,80,0.4);
+  }
+
+  .sub-text {
+    font-size: 13px;
+    color: #555;
+    letter-spacing: 0.05em;
+  }
+
+  .divider {
+    position: relative;
+    z-index: 2;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #1e1e1e, #2a2a2a, #1e1e1e, transparent);
+    margin: 0 28px;
+  }
+
+  .bottom-bar {
+    position: relative;
+    z-index: 2;
+    padding: 12px 22px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .disclaimer {
+    font-size: 10px;
+    color: #333;
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .brand-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #00dc50;
+    box-shadow: 0 0 4px rgba(0,220,80,0.6);
+  }
+  .brand-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2a2a2a;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ===== EDIT PANEL ===== */
+  .panel {
+    width: 480px;
+    max-width: 100%;
+    background: #0d0d0d;
+    border: 1px solid #1e1e1e;
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #00dc50;
+    text-transform: uppercase;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
+
+  label {
+    font-size: 10px;
+    color: #444;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  input[type="text"], input[type="url"], textarea {
+    background: #080808;
+    border: 1px solid #1e1e1e;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #bbb;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input[type="text"]:focus,
+  input[type="url"]:focus,
+  textarea:focus { border-color: rgba(0,220,80,0.4); color: #fff; }
+
+  textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+
+  input[type="file"] { display: none; }
+
+  .upload-btn {
+    background: #0d0d0d;
+    border: 1px dashed #2a2a2a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #444;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .upload-btn:hover { border-color: rgba(0,220,80,0.4); color: #00dc50; }
+
+  .apply-btn {
+    background: rgba(0,220,80,0.1);
+    border: 1px solid rgba(0,220,80,0.4);
+    border-radius: 10px;
+    padding: 13px;
+    color: #00dc50;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background 0.2s;
+    margin-top: 4px;
+  }
+  .apply-btn:hover { background: rgba(0,220,80,0.18); }
+
+  .export-btn {
+    background: transparent;
+    border: 1px solid #1e1e1e;
+    border-radius: 10px;
+    padding: 11px;
+    color: #444;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .export-btn:hover { border-color: #333; color: #888; }
+
+  .hint {
+    font-size: 10px;
+    color: #2a2a2a;
+    text-align: center;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="page-title">◈ Crypto News Template</h1>
+
+<!-- CARD PREVIEW -->
+<div class="card" id="card">
+  <div class="grid-bg"></div>
+  <div class="glow-top"></div>
+  <div class="corner-accent tl"></div>
+  <div class="corner-accent tr"></div>
+  <div class="corner-accent bl"></div>
+  <div class="corner-accent br"></div>
+
+  <div class="top-bar">
+    <span class="tag" id="tagEl">Funding Round</span>
+    <div class="dot-row">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot green"></div>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="logo-wrap" onclick="document.getElementById('fileInput').click()">
+      <span class="logo-placeholder" id="logoPlaceholder">◈</span>
+      <img class="logo-img" id="logoImg" src="" alt="logo">
+      <div class="logo-upload-hint">
+        <span>▲</span>
+        <span>อัปโหลด</span>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+
+    <div class="project-name" id="projectNameEl">Dango Testnet</div>
+
+    <div class="funding-pill">
+      <span class="funding-label" id="fundingLabelEl">Funding</span>
+      <span class="funding-amount" id="fundingEl">$3.6M</span>
+    </div>
+
+    <div class="sub-text" id="subTextEl">รายละเอียดใต้คอมเมนต์</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="bottom-bar">
+    <div class="disclaimer" id="disclaimerEl">คำเตือน: บล็อกเชนและคริปโตเป็นการลงทุนที่มีความเสี่ยงสูง<br>โปรดศึกษาให้ดีก่อนเข้าร่วม</div>
+    <div class="brand-row">
+      <div class="brand-dot"></div>
+      <span class="brand-name" id="brandEl">@YourHandle</span>
+      <div class="brand-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT PANEL -->
+<div class="panel">
+  <div class="panel-title">แก้ไข Template</div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>ชื่อโปรเจกต์</label>
+      <input type="text" id="inName" value="Dango Testnet" placeholder="Project Name">
+    </div>
+    <div class="field">
+      <label>Tag (มุมบนซ้าย)</label>
+      <input type="text" id="inTag" value="Funding Round" placeholder="Funding Round">
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label>Label ใน pill</label>
+      <input type="text" id="inFundingLabel" value="Funding" placeholder="Funding">
+    </div>
+    <div class="field">
+      <label>จำนวน / ตัวเลข</label>
+      <input type="text" id="inFunding" value="$3.6M" placeholder="$3.6M">
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Sub text (ใต้ตัวเลข)</label>
+    <input type="text" id="inSub" value="รายละเอียดใต้คอมเมนต์" placeholder="Sub text">
+  </div>
+
+  <div class="field">
+    <label>Logo — URL รูป (หรือคลิกที่รูปด้านบนเพื่ออัปโหลด)</label>
+    <input type="url" id="inLogoUrl" placeholder="https://example.com/logo.png">
+  </div>
+
+  <div class="field">
+    <label>หรืออัปโหลดจากเครื่อง</label>
+    <div class="upload-btn" onclick="document.getElementById('fileInput').click()">
+      คลิกเพื่อเลือกรูป Logo
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Disclaimer (แก้หรือเว้นว่างได้)</label>
+    <textarea id="inDisclaimer">คำเตือน: บล็อกเชนและคริปโตเป็นการลงทุนที่มีความเสี่ยงสูง
+โปรดศึกษาให้ดีก่อนเข้าร่วม</textarea>
+  </div>
+
+  <div class="field">
+    <label>@Handle ของคุณ</label>
+    <input type="text" id="inBrand" value="@YourHandle" placeholder="@YourHandle">
+  </div>
+
+  <button class="apply-btn" onclick="applyChanges()">อัปเดต Template</button>
+  <button class="export-btn" onclick="exportCard()">Screenshot / Save (Print)</button>
+
+  <p class="hint">เปิดหน้านี้บน browser → แก้ข้อมูล → กด Screenshot<br>หรือใช้ Print → Save as PDF แล้ว crop ในแอปได้เลย</p>
+</div>
+
+<script>
+  // Apply URL logo
+  const inLogoUrl = document.getElementById('inLogoUrl');
+  inLogoUrl.addEventListener('input', function() {
+    const url = this.value.trim();
+    if (url) loadLogo(url);
+  });
+
+  // Upload file logo
+  document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) { loadLogo(ev.target.result); };
+    reader.readAsDataURL(file);
+  });
+
+  function loadLogo(src) {
+    const img = document.getElementById('logoImg');
+    const placeholder = document.getElementById('logoPlaceholder');
+    img.src = src;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+  }
+
+  function applyChanges() {
+    const v = (id) => document.getElementById(id).value;
+    document.getElementById('projectNameEl').textContent = v('inName') || 'Project Name';
+    document.getElementById('tagEl').textContent = v('inTag') || 'News';
+    document.getElementById('fundingLabelEl').textContent = v('inFundingLabel') || 'Funding';
+    document.getElementById('fundingEl').textContent = v('inFunding') || '$0';
+    document.getElementById('subTextEl').textContent = v('inSub') || '';
+    document.getElementById('brandEl').textContent = v('inBrand') || '@handle';
+    const disc = v('inDisclaimer');
+    document.getElementById('disclaimerEl').innerHTML = disc.replace(/\n/g, '<br>');
+    // logo url
+    const url = v('inLogoUrl').trim();
+    if (url) loadLogo(url);
+  }
+
+  function exportCard() {
+    window.print();
+  }
+</script>
+
+</body>
+</html>
